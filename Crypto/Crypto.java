@@ -1,6 +1,6 @@
-package project1;
+package Crypto;
 
-public class Encryption {
+public class Crypto {
     public static int[] DES(int[] plaintext, int[] key) {
         
         if (validateInput(plaintext, key)) {

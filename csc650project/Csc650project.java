@@ -1,5 +1,5 @@
 package csc650project;
-import project1.Encryption;
+import Crypto.Crypto;
 
 public class Csc650project {
 
@@ -11,7 +11,7 @@ public class Csc650project {
         for (int i = 0; i < 64; i++)
             plaintext[i] = i + 1;
         
-        ciphertext = Encryption.DES(plaintext, key);
+        ciphertext = Crypto.DES(plaintext, key);
         
         for (int i = 0; i < 64; i++) {
             
