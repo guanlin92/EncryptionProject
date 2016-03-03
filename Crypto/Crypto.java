@@ -6,15 +6,44 @@ public class Crypto {
         if (validateInput(plaintext, key)) {
             //return initial_permutation(plaintext);
             //return final_permutation(plaintext);
-            return final_permutation(initial_permutation(plaintext));
+            //return final_permutation(initial_permutation(plaintext));
+            
+            return initial_key_permutation(key);
         }
         
         return null;
     }
     
+    private static int[] generate_per_round_key(int[] key, int round) {
+        int[] new_key = new int[48];
+        
+        
+        
+        return new_key;
+    }
+    
+    private static int[] initial_key_permutation(int[] key) {
+        int[] new_key = new int[56];
+        
+        int j = 0;
+        for (int i = 0; i < key.length; i++) {
+            if (((i + 1) % 8) != 0)
+                new_key[j++] = key[i];
+        }
+        
+        return new_key;
+    }
+    
+    private static int[] shift_left(int[] key, int num_to_shift) {
+        
+        return key;
+    }
+    
     private static int[] initial_permutation(int[] input) {
         int i, j, row, col_offset;
         int[] permuted = new int [64];
+
+        
         
         col_offset = 1;
         for (i = 7; i < 64; i += 8) {
