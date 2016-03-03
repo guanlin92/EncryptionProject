@@ -2,28 +2,76 @@ package Crypto;
 
 public class Crypto {
     public static int[] DES(int[] plaintext, int[] key) {
-        
+        int[] round_key;
         if (validateInput(plaintext, key)) {
-            //return initial_permutation(plaintext);
-            //return final_permutation(plaintext);
-            //return final_permutation(initial_permutation(plaintext));
             
-            return initial_key_permutation(key);
+            key = permute_key(key);
+            for (int i = 1; i <= 16; i++) {
+            
+                round_key = generate_per_round_key(key, i);
+                
+                for (int j = 0; j < round_key.length; j++) {
+                    if ((j % 6) == 0)
+                        System.out.print(" ");
+
+                    System.out.print(round_key[j]);
+                }
+                
+                System.out.println();
+            }
         }
         
-        return null;
+        return key;
+    }
+
+    private static int[] generate_per_round_key(int[] key, int round) {
+        int[] new_key = key;
+ 
+        if (round == 1 || round == 2 || round == 9 || round == 16) {
+            new_key = shift_left(new_key, 0, new_key.length / 2 - 1, 1);
+            new_key = shift_left(new_key, new_key.length / 2, 
+                    new_key.length - 1, 1);
+        } else {
+            new_key = shift_left(new_key, 0, new_key.length / 2 - 1, 2);
+            new_key = shift_left(new_key, new_key.length / 2, 
+                    new_key.length - 1, 2);
+        }
+            
+        new_key = permute_key_per_round(new_key);
+ 
+        return new_key;
     }
     
-    private static int[] generate_per_round_key(int[] key, int round) {
-        int[] new_key = new int[48];
+    private static int[] permute_key(int[] key) {
+        key = remove_parity_bits(key);
+        int[] new_key = new int[key.length];
+        int start = 50;
+        int j = 0;
+        int i = start;
         
-        
+        while (j < 28) {
+            new_key[j++] = key[i - 1];
+            i -= 7;
+            if (i < 0)
+                i = ++start;
+        }
+
+        start = 56;
+        i = start;
+        while(j < 56) {
+            new_key[j++] = key[i - 1];
+            i -= 7;
+            if (i <= 0)
+                i = --start;
+            if (j == 52)
+                i = 25;
+        }
         
         return new_key;
     }
     
-    private static int[] initial_key_permutation(int[] key) {
-        int[] new_key = new int[56];
+    private static int[] remove_parity_bits(int[] key) {
+        int[] new_key = new int[key.length - 8];
         
         int j = 0;
         for (int i = 0; i < key.length; i++) {
@@ -34,164 +82,75 @@ public class Crypto {
         return new_key;
     }
     
-    private static int[] shift_left(int[] key, int num_to_shift) {
+    private static int[] permute_key_per_round(int[] key) {
+        int[] new_key = new int[key.length - 8];
+        int[] permutation = {
+            14, 17, 11, 24, 1, 5,
+            3, 28, 15, 6, 21, 10,
+            23, 19, 12, 4, 26, 8,
+            16, 7, 27, 20, 13, 2,
+            41, 52, 31, 37, 47, 55,
+            30, 40, 51, 45, 33, 48,
+            44, 49, 39, 56, 34, 53,
+            46, 42, 50, 36, 29, 32};                    
+        
+        for (int i = 0; i < new_key.length; i++) {
+            new_key[i] = key[permutation[i] - 1];
+        }
+
+        return new_key;
+    }
+
+    private static int[] shift_left(int[] key, int begin, int end, int bits_to_shift) {
+        int first_bit;
+        
+        for (int i = 0; i < bits_to_shift; i++) {
+            first_bit = key[begin];
+            for (int j = begin + 1; j <= end; j++) {
+                key[j - 1] = key[j];
+            }
+            key[end] = first_bit;
+        }
         
         return key;
     }
     
-    private static int[] initial_permutation(int[] input) {
+    
+    private static int[] permute_data_initial(int[] input) {
         int i, j, row, col_offset;
-        int[] permuted = new int [64];
-
-        
+        int[] permuted = new int [input.length];   
         
         col_offset = 1;
-        for (i = 7; i < 64; i += 8) {
+        for (i = 7; i < input.length; i += 8) {
             row = i;
             
             // reset offset for 2nd haft
             if (i == 39)
                 col_offset = 0;
             
-            for (j = col_offset; j < 64; j += 8) {
+            for (j = col_offset; j < input.length; j += 8) {
                 permuted[row--] = input[j];
             }
  
             col_offset += 2;
         }
         
-        
-        /*
-        l = 1;
-        for (k = 7; k < 32; k += 8) {
-            j = k;
-            for (i = l; i < 64; i += 8) {
-                permuted[j--] = input[i];
-            }
-            l += 2;
-        }
-        
-        l = 0;
-        for (k = 39; k < 64; k += 8) {
-            j = k;
-            for (i = l; i < 64; i += 8) {
-                permuted[j--] = input[i];
-            }
-            l += 2;
-        }
-        */
-        
-        /*
-        j = 7;
-        for (i = 1; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        }
-        
-        j = 7 + 8;
-        for (i = 3; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        }
-        
-        j = 7 + 8 + 8;
-        for (i = 5; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        } 
-        
-        j = 7 + 8 + 8 + 8;
-        for (i = 7; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        }
-        
-        j = 39;
-        for (i = 0; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        }
-        
-        j = 39 + 8;
-        for (i = 2; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        }
-        
-        j = 39 + 8 + 8;
-        for (i = 4; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        }
-        
-        j = 39 + 8 + 8 + 8;
-        for (i = 6; i < 64; i += 8) {
-            permuted[j--] = input[i];
-        }
-        */
-        
         return permuted;
     }
     
-    
-    
-    private static int[] final_permutation(int[] input) {
+    private static int[] permute_data_final(int[] input) {
         int i, j, col;
-        int[] permuted = new int [64];
+        int[] permuted = new int [input.length];
         
         i = 0;
-        for (col = 57; col < 64; col += 2) {
+        for (col = 57; col < input.length; col += 2) {
             for (j = col; j > -1; j -= 8) {
                 permuted[j] = input[i++];  
             }
             
-            if (col == 63)
+            if (col == input.length - 1)
                 col = 54;
         }
-        
-        
-        /*
-        i = 0;
-        for (col = 57; col < 64; col += 2) {
-            for (j = col; j > -1; j -= 8) {
-                permuted[j] = input[i++];
-            }
-        }
-        
-        for (col = 56; col < 64; col += 2) {
-            for (j = col; j > -1; j -= 8) {
-                permuted[j] = input[i++];
-            }
-        }
-        */
-        
-        /*
-        i = 0;
-        for (j = 57; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        
-        for (j = 57 + 2; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        
-        for (j = 57 + 2 + 2; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        
-        for (j = 57 + 2 + 2 + 2; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        
-        for (j = 56; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        
-        for (j = 56 + 2; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        
-        for (j = 56 + 2 + 2; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        
-        for (j = 56 + 2 + 2 + 2; j > -1; j -= 8) {
-            permuted[j] = input[i++];
-        }
-        */
         
         return permuted;
     }
